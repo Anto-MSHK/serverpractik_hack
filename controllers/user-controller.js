@@ -1,18 +1,21 @@
 const { ObjectId } = require("mongodb");
 const userModel = require("../models/userModel");
-const userService = require("../service/user-service");
+const userService = require("../services/user-service");
 const jwt = require("jsonwebtoken");
-const { updatePicture } = require("../service/user-service");
-const upload = require("../multer");
 const {
   validateRefreshToken,
   validateAccessToken,
-} = require("../service/token-service");
+} = require("../services/token-service");
 class UserController {
   async registration(req, res, next) {
     try {
-      const { email, password, name, age } = req.body;
-      const userData = await userService.registration(email, password, name, age);
+      const { email, name, department, isAccessHight } = req.body;
+      const userData = await userService.registration(
+        email,
+        name,
+        department,
+        isAccessHight
+      );
       res.cookie("refreshToken", userData.refreshToken, {
         maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
@@ -49,11 +52,24 @@ class UserController {
     }
   }
 
-  async activate(req, res, next) {
+  async isCorrectActivateLink(req, res, next) {
     try {
       const activationLink = req.params.link;
-      await userService.activate(activationLink);
-      return res.redirect(process.env.CLIENT_URL);
+      const result = await userService.isCorrectActivateLink(activationLink);
+      return res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async activateAccount(req, res, next) {
+    try {
+      const { activationLink, password } = req.body;
+      const result = await userService.activateAccount(
+        activationLink,
+        password
+      );
+      return res.json(result);
     } catch (err) {
       next(err);
     }
@@ -85,7 +101,7 @@ class UserController {
   async getUser(req, res, next) {
     try {
       const user = await userService.getUser(req.params.id);
-      console.log(user)
+      console.log(user);
       res.json(user);
     } catch (err) {
       next(err);
@@ -94,7 +110,7 @@ class UserController {
 
   async change(req, res, next) {
     try {
-      const { name, age, gender } = req.body;
+      const { name, department, isAccessHight } = req.body;
       const token = req.headers.authorization?.split(" ")[1];
       if (!token) {
         throw res.status(400).json({
@@ -102,7 +118,11 @@ class UserController {
         });
       }
       const user = req.user;
-      const userData = await userService.change(user.id, { name, age, gender });
+      const userData = await userService.change(user.id, {
+        name,
+        department,
+        isAccessHight,
+      });
       return res.json(userData);
     } catch (err) {
       next(err);
@@ -111,30 +131,6 @@ class UserController {
 
   //   --> tests <--
 
-  async saveTest(req, res, next) {
-    try {
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) {
-        throw res.status(400).json({
-          status: "INVALID_DATA",
-        });
-      }
-      const user = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-
-      const { test_id, tasks } = req.body;
-      const candidate = await userModel.findOne({ _id: new ObjectId(user.id) });
-      if (!candidate) {
-        throw res.status(400).json({
-          status: "INVALID_DATA",
-        });
-      }
-      candidate.tests.push({ test_id, tasks });
-      await candidate.save();
-      return res.json(candidate);
-    } catch (err) {
-      next(err);
-    }
-  }
   async updatePicture(req, res, next) {
     upload(req, res, async (err) => {
       try {

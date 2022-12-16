@@ -3,8 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
-// const router = require("./router/index");
-// const errorMiddleware = require("./middleware/error-middleware");
+const router = require("./routes");
+const errorMiddleware = require("./middlewares/error-middleware");
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -20,11 +20,11 @@ app.use(
   ])
 );
 app.use(express.urlencoded({ extended: true }));
-// app.use("/api", router);
+app.use("/api", router);
 
-// app.use(express.static("files"));
-// app.use("/files", express.static("files"));
-// app.use(errorMiddleware);
+app.use(express.static("files"));
+app.use("/files", express.static("files"));
+app.use(errorMiddleware);
 
 const start = async () => {
   try {
