@@ -2,6 +2,8 @@ const userController = require("./controllers/user-controller");
 const roleController = require("./controllers/role-controller");
 const authMiddleware = require("./middlewares/auth-middleware");
 const roleMiddleware = require("./middlewares/role-middleware");
+const fileController = require("./controllers/file-controller");
+const folderController = require("./controllers/folder-controller");
 
 const router = require("express").Router();
 
@@ -22,4 +24,6 @@ router.post("/logout", userController.logout);
 router.post("/role", roleController.createRole);
 router.post("/avatar", userController.updatePicture);
 
+router.post("/folder", folderController.add);
+router.post("/upload", fileController.add);
 module.exports = router;
