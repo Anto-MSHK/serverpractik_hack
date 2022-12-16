@@ -26,7 +26,7 @@ const UserSchema = new Schema({
     type: String,
   },
   isAccessHight: {
-    type: String,
+    type: Boolean,
   },
 });
 

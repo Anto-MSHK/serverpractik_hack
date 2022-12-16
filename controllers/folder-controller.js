@@ -1,5 +1,8 @@
 const folderModel = require("../models/folderModel");
+const fileModel = require("../models/fileModel");
+const userModel = require("../models/userModel");
 const folderService = require("../services/folder-service");
+const ApiError = require("../exceptions/api-error");
 
 class FolderController {
   add = async (req, res, next) => {
@@ -51,37 +54,51 @@ class FolderController {
     try {
       const { id } = req.query;
       let folder = [];
-      if (!id) folder = await folderModel.find({});
-      else {
-        folder = await folderModel.findOne({ _id: id });
-        const arrTasks = await Promise.all(
-          folder.tasks_id.map(async (task_id) => {
-            const candidateTask = await taskModel.findOne({ _id: task_id });
-            const variants = await Promise.all(
-              candidateTask.variants_id.map(async (variant_id) => {
-                const candidateVariant = await variantModel.findOne({
-                  _id: variant_id,
-                });
-                return candidateVariant;
-              })
-            );
-            return {
-              _id: candidateTask._id,
-              title: candidateTask.title,
-              description: candidateTask.description,
-              type: candidateTask.type,
-              variants: variants,
-            };
-          })
-        );
-        let result = {
-          name: folder.name,
-          description: folder.description,
-          tasks: arrTasks,
-        };
-        return res.json({ status: "OK", result });
+
+      const user = await userModel.findById(req.user.id);
+      if (user.isAccessHight) {
+        if (!id) {
+          folder = await folderModel.find({});
+          return res.json({ status: "OK", result: folder });
+        } else {
+          folder = await folderModel.findOne({ _id: id });
+          const arrFiles = await Promise.all(
+            folder.files_id.map(async (file_id) => {
+              const candidateFile = await fileModel.findById(file_id);
+              return candidateFile;
+            })
+          );
+          let result = {
+            folder: folder,
+            files: arrFiles,
+          };
+          return res.json({ status: "OK", result: result });
+        }
+      } else {
+        if (!id) {
+          folder = await folderModel.find({ isHidden: false });
+          return res.json({ status: "OK", result: folder });
+        } else {
+          folder = await folderModel.findOne({ _id: id, isHidden: false });
+          if (!folder) {
+            throw ApiError.BadRequest("Записи не существует");
+          }
+          const arrFiles = await Promise.all(
+            folder.files_id.map(async (file_id) => {
+              const candidateFile = await fileModel.findOne({
+                _id: file_id,
+                isHidden: false,
+              });
+              return candidateFile;
+            })
+          );
+          let result = {
+            folder: folder,
+            files: arrFiles.filter((cand) => cand !== null),
+          };
+          return res.json({ status: "OK", result });
+        }
       }
-      return res.json({ status: "OK", result: folder });
     } catch (e) {
       next(e);
     }
