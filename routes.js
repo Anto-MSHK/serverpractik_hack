@@ -25,5 +25,10 @@ router.post("/role", roleController.createRole);
 router.post("/avatar", userController.updatePicture);
 
 router.post("/folder", folderController.add);
+router.put("/folder/:id", folderController.change);
+router.delete("/folder/:id", folderController.delete);
+
 router.post("/upload", fileController.add);
+router.put("/file/:id", fileController.change);
+router.delete("/file/:id", fileController.delete);
 module.exports = router;

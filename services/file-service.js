@@ -20,6 +20,12 @@ class FileService {
         status: "INVALID_DATA",
       };
     }
+
+    const candidateFile = await fileModel.findOne({ name: name });
+    if (candidateFile) {
+      throw ApiError.BadRequest("Данный файл уже существует!");
+    }
+
     const createDate = new Date();
     const type = file.name.split(".").pop();
 
@@ -49,7 +55,7 @@ class FileService {
     //  }
   };
 
-  change = async (id, title, description, type) => {
+  change = async (id, name, description, isHidden) => {
     const candidate = await fileModel.findOne({ _id: id });
 
     if (!candidate) {
@@ -57,8 +63,20 @@ class FileService {
         status: "INVALID_DATA",
       };
     }
+    const editDate = new Date();
+    const newPath = `${candidate.url.split("\\")[0]}\\${
+      candidate.url.split("\\")[1]
+    }\\${candidate.url.split("\\")[2]}\\${name}.${candidate.extension}`;
 
-    await candidate.updateOne({ title, description, type });
+    fs.rename(candidate.url, newPath, (e) => {});
+
+    await candidate.updateOne({
+      name,
+      description,
+      isHidden,
+      editDate,
+      url: newPath,
+    });
 
     return candidate;
   };
@@ -72,7 +90,11 @@ class FileService {
       };
     }
 
-    const candidatefolder = await folderModel.findOne({
+    if (fs.existsSync(candidatefile.url)) {
+      fs.unlink(candidatefile.url, (err) => {});
+    }
+
+    await folderModel.findOneAndUpdate({
       $pull: { files_id: candidatefile._id },
     });
 

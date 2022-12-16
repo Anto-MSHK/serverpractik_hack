@@ -1,5 +1,6 @@
 const folderModel = require("../models/folderModel");
 const fs = require("fs");
+const fileModel = require("../models/fileModel");
 class FolderService {
   add = async (name, description, isHidden) => {
     try {
@@ -56,6 +57,19 @@ class FolderService {
           messages: [{ description: errorsMSG.NOT_Z }],
         };
       }
+
+      if (fs.existsSync(`.\\files\\${candidate._id}`)) {
+        fs.rmSync(`.\\files\\${candidate._id}`, {
+          recursive: true,
+          force: true,
+        });
+      }
+
+      await Promise.all(
+        candidate.files_id.map(async (_id) => {
+          await fileModel.findByIdAndDelete(_id);
+        })
+      );
 
       await candidate.deleteOne({ _id: id });
 
