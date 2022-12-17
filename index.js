@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 app.use(express.static("files"));
-app.use("/files", express.static("files"));
+app.use("/opt/render/project/src/files", express.static("files"));
 app.use(errorMiddleware);
 
 console.log(process.cwd());

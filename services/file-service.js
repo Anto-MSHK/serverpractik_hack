@@ -70,9 +70,13 @@ class FileService {
       };
     }
     const editDate = new Date();
-    const newPath = `${candidate.url.split("\\")[0]}\\${
-      candidate.url.split("\\")[1]
-    }\\${candidate.url.split("\\")[2]}\\${name}.${candidate.extension}`;
+    const newPath = `${candidate.url.split("/")[0]}/${
+      candidate.url.split("/")[1]
+    }/${candidate.url.split("/")[2]}/${candidate.url.split("/")[3]}/${
+      candidate.url.split("/")[3]
+    }/${candidate.url.split("/")[4]}/${candidate.url.split("/")[5]}/${name}.${
+      candidate.extension
+    }`;
 
     fs.rename(candidate.url, newPath, (e) => {});
 
