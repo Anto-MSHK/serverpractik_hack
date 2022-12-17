@@ -31,7 +31,7 @@ app.use(errorMiddleware);
 console.log(process.cwd());
 const start = async () => {
   try {
-    fs.mkdirSync(`${process.cwd()}\\files`, { recursive: true });
+    fs.mkdirSync(`${process.cwd()}/files`, { recursive: true });
     await mongoose.connect(process.env.DB_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
