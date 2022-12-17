@@ -8,6 +8,7 @@ const errorMiddleware = require("./middlewares/error-middleware");
 const fileUpload = require("express-fileupload");
 const PORT = process.env.PORT || 5000;
 const app = express();
+const fs = require("fs");
 
 app.use(fileUpload({}));
 app.use(express.json());
@@ -29,6 +30,7 @@ app.use(errorMiddleware);
 
 const start = async () => {
   try {
+    fs.mkdirSync(`.\\files`, { recursive: true });
     await mongoose.connect(process.env.DB_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
