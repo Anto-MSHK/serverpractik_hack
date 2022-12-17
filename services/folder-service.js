@@ -2,7 +2,7 @@ const folderModel = require("../models/folderModel");
 const fs = require("fs");
 const fileModel = require("../models/fileModel");
 class FolderService {
-  add = async (name, description, isHidden) => {
+  add = async (name, description, isHidden, creator_id) => {
     try {
       if (!name) {
         throw {
@@ -16,6 +16,7 @@ class FolderService {
         description,
         isHidden,
         createDate,
+        creator_id,
       });
       let a = folder._id.toString();
       fs.mkdirSync(`.\\files\\${a}`, { recursive: true });

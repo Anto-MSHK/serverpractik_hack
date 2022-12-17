@@ -17,20 +17,48 @@ router.get(
 router.get("/account/isactive/:link", userController.isCorrectActivateLink);
 
 router.put("/user", authMiddleware, userController.change);
-router.post("/registration", userController.registration);
+router.post(
+  "/registration",
+  [authMiddleware, roleMiddleware("ADMIN")],
+  userController.registration
+);
 router.post("/account/active", userController.activateAccount);
 router.post("/login", userController.login);
-router.post("/logout", userController.logout);
+router.post("/logout", authMiddleware, userController.logout);
 router.post("/role", roleController.createRole);
-router.post("/avatar", userController.updatePicture);
+router.post("/avatar", authMiddleware, userController.updatePicture);
 
 router.get("/folder", [authMiddleware], folderController.get);
-router.post("/folder", folderController.add);
-router.put("/folder/:id", folderController.change);
-router.delete("/folder/:id", folderController.delete);
+router.post(
+  "/folder",
+  [authMiddleware, roleMiddleware("ADMIN")],
+  folderController.add
+);
+router.put(
+  "/folder/:id",
+  [authMiddleware, roleMiddleware("ADMIN")],
+  folderController.change
+);
+router.delete(
+  "/folder/:id",
+  [authMiddleware, roleMiddleware("ADMIN")],
+  folderController.delete
+);
 
 router.get("/file", [authMiddleware], fileController.get);
-router.post("/upload", fileController.add);
-router.put("/file/:id", fileController.change);
-router.delete("/file/:id", fileController.delete);
+router.post(
+  "/upload",
+  [authMiddleware, roleMiddleware("ADMIN")],
+  fileController.add
+);
+router.put(
+  "/file/:id",
+  [authMiddleware, roleMiddleware("ADMIN")],
+  fileController.change
+);
+router.delete(
+  "/file/:id",
+  [authMiddleware, roleMiddleware("ADMIN")],
+  fileController.delete
+);
 module.exports = router;

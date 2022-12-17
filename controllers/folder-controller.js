@@ -7,8 +7,14 @@ const ApiError = require("../exceptions/api-error");
 class FolderController {
   add = async (req, res, next) => {
     try {
+      const user = await userModel.findById(req.user.id);
       const { name, description, isHidden } = req.body;
-      const folder = await folderService.add(name, description, isHidden);
+      const folder = await folderService.add(
+        name,
+        description,
+        isHidden,
+        user._id
+      );
       return res.json({ status: "OK", result: folder });
     } catch (e) {
       next(e);
@@ -59,7 +65,7 @@ class FolderController {
       if (user.isAccessHight) {
         if (!id) {
           folder = await folderModel.find({});
-          return res.json({ status: "OK", result: folder });
+          return res.json({ status: "OK", result: { folder } });
         } else {
           folder = await folderModel.findOne({ _id: id });
           const arrFiles = await Promise.all(
@@ -77,7 +83,7 @@ class FolderController {
       } else {
         if (!id) {
           folder = await folderModel.find({ isHidden: false });
-          return res.json({ status: "OK", result: folder });
+          return res.json({ status: "OK", result: { folder } });
         } else {
           folder = await folderModel.findOne({ _id: id, isHidden: false });
           if (!folder) {

@@ -8,13 +8,15 @@ class FileController {
   add = async (req, res, next) => {
     try {
       let file = req.files.file;
+      const user = await userModel.findById(req.user.id);
       const { folder_id, name, description, isHidden } = req.body;
       const fileColl = await fileService.add(
         folder_id,
         name,
         description,
         isHidden,
-        file
+        file,
+        user._id
       );
       return res.json({ fileColl });
     } catch (e) {
@@ -58,9 +60,47 @@ class FileController {
 
       const user = await userModel.findById(req.user.id);
       if (user.isAccessHight) {
-        if (!id) files = await fileModel.find({});
-        else {
-          files = await fileModel.findOne({ _id: id });
+        if (!id) {
+          files = await fileModel.find({});
+          files = await Promise.all(
+            files.map(async (file) => {
+              const folder = await folderModel.findOne({
+                files_id: { $elemMatch: { $eq: file._id } },
+              });
+              return {
+                _id: file._id,
+                name: file.name,
+                url: file.url,
+                isHidden: file.isHidden,
+                creator_id: file.creator_id,
+                createDate: file.createDate,
+                extension: file.extension,
+                editDate: file.editDate,
+                description: file.description,
+                size: file.size,
+
+                folder: { _id: folder._id, name: folder.name },
+              };
+            })
+          );
+        } else {
+          const filesWithFolder = await fileModel.findOne({ _id: id });
+          const folder = await folderModel.findOne({
+            files_id: { $elemMatch: { $eq: id } },
+          });
+          files = {
+            _id: filesWithFolder._id,
+            name: filesWithFolder.name,
+            url: filesWithFolder.url,
+            isHidden: filesWithFolder.isHidden,
+            creator_id: filesWithFolder.creator_id,
+            createDate: filesWithFolder.createDate,
+            extension: filesWithFolder.extension,
+            editDate: filesWithFolder.editDate,
+            description: filesWithFolder.description,
+            size: filesWithFolder.size,
+            folder: { _id: folder._id, name: folder.name },
+          };
         }
         return res.json({ status: "OK", result: files });
       } else {
@@ -70,10 +110,25 @@ class FileController {
             folders.map(async (folder) => {
               return await Promise.all(
                 folder.files_id.map(async (file_id) => {
-                  return await fileModel.findOne({
+                  const file = await fileModel.findOne({
                     _id: file_id,
                     isHidden: false,
                   });
+                  if (file !== null)
+                    return {
+                      _id: file._id,
+                      name: file.name,
+                      url: file.url,
+                      isHidden: file.isHidden,
+                      creator_id: file.creator_id,
+                      createDate: file.createDate,
+                      extension: file.extension,
+                      editDate: file.editDate,
+                      description: file.description,
+                      size: file.size,
+                      folder: { _id: folder._id, name: folder.name },
+                    };
+                  else undefined;
                 })
               );
             })
@@ -84,7 +139,7 @@ class FileController {
           });
           return res.json({
             status: "OK",
-            result: arr.filter((cand) => cand !== null),
+            result: arr.filter((cand) => cand),
           });
         } else {
           files = await fileModel.findById(id);
@@ -99,7 +154,22 @@ class FileController {
             throw ApiError.BadRequest("Данной записи не существует!");
           }
 
-          return res.json({ status: "OK", result: files });
+          return res.json({
+            status: "OK",
+            result: {
+              _id: files._id,
+              name: files.name,
+              url: files.url,
+              isHidden: files.isHidden,
+              creator_id: files.creator_id,
+              createDate: files.createDate,
+              extension: files.extension,
+              editDate: files.editDate,
+              description: files.description,
+              size: files.size,
+              folder: { id: folder._id, name: folder.name },
+            },
+          });
         }
       }
     } catch (e) {

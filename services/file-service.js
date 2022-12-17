@@ -5,32 +5,35 @@ const fs = require("fs");
 const ApiError = require("../exceptions/api-error");
 
 class FileService {
-  add = async (folder_id, name, description, isHidden, file) => {
+  add = async (folder_id, name, description, isHidden, file, creator_id) => {
     //  try {
     if (!folder_id || !name) {
-      throw {
-        status: "INVALID_DATA",
-      };
+      throw ApiError.BadRequest("Нет папки!");
+    }
+
+    if (file.size > 20000000) {
+      throw ApiError.BadRequest("Файл больше допустимого размера!");
     }
 
     const candidatefolder = await folderModel.findById(folder_id);
 
     if (!candidatefolder) {
-      throw {
-        status: "INVALID_DATA",
-      };
+      throw ApiError.BadRequest("Нет папки!");
     }
-
-    const candidateFile = await fileModel.findOne({ name: name });
-    if (candidateFile) {
-      throw ApiError.BadRequest("Данный файл уже существует!");
-    }
-
     const createDate = new Date();
     const type = file.name.split(".").pop();
 
+    const isNotExist = await Promise.all(
+      candidatefolder.files_id.map(async (file_id) => {
+        return await fileModel.findOne({ _id: file_id, name: name });
+      })
+    );
+
     const filepath = `${process.env.FILE_PATH}\\${candidatefolder._id}\\${name}.${type}`;
-    if (fs.existsSync(filepath)) {
+    if (
+      fs.existsSync(filepath) ||
+      isNotExist.filter((cand) => cand).length > 0
+    ) {
       throw ApiError.BadRequest("Данный файл уже существует!");
     }
     file.mv(filepath);
@@ -42,6 +45,7 @@ class FileService {
       size: file.size,
       extension: type,
       url: filepath,
+      creator_id,
     });
 
     await fileColl.save();
