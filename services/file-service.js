@@ -29,7 +29,9 @@ class FileService {
       })
     );
 
-    const filepath = `${process.env.FILE_PATH}\\${candidatefolder._id}\\${name}.${type}`;
+    const filepath = `${process.cwd()}\\${process.env.FILE_PATH}\\${
+      candidatefolder._id
+    }\\${name}.${type}`;
     if (
       fs.existsSync(filepath) ||
       isNotExist.filter((cand) => cand).length > 0

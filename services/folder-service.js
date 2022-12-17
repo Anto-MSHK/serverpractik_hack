@@ -19,7 +19,7 @@ class FolderService {
         creator_id,
       });
       let a = folder._id.toString();
-      fs.mkdirSync(`.\\files\\${a}`, { recursive: true });
+      fs.mkdirSync(`${process.cwd()}\\files\\${a}`, { recursive: true });
 
       await folder.save();
 
@@ -59,8 +59,8 @@ class FolderService {
         };
       }
 
-      if (fs.existsSync(`.\\files\\${candidate._id}`)) {
-        fs.rmSync(`.\\files\\${candidate._id}`, {
+      if (fs.existsSync(`${process.cwd()}\\files\\${candidate._id}`)) {
+        fs.rmSync(`${process.cwd()}\\files\\${candidate._id}`, {
           recursive: true,
           force: true,
         });
