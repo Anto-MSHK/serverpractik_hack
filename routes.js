@@ -14,6 +14,8 @@ router.get(
   [authMiddleware, roleMiddleware("ADMIN")],
   userController.getUsers
 );
+router.get("/user/:id", [authMiddleware], userController.getUser);
+
 router.get("/account/isactive/:link", userController.isCorrectActivateLink);
 
 router.put("/user", authMiddleware, userController.change);
