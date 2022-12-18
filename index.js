@@ -19,6 +19,10 @@ app.use(
       credentials: true,
       origin: "http://localhost:3000/",
     },
+    {
+      credentials: true,
+      origin: "https://webpractik-hack.onrender.com/",
+    },
   ])
 );
 app.use(express.urlencoded({ extended: true }));
